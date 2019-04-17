@@ -1,6 +1,8 @@
 #include "buff.h"
 #include "sysdata.h"
 
+//执行相关命令
+
 void data2Buff(char *data, int len)
 {
     char buf_temp[10] = {0};

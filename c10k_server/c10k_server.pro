@@ -14,7 +14,8 @@ SOURCES += \
     src/mythread.cpp \
     src/savedata.cpp \
     src/sysdata.cpp \
-    src/buff.cpp
+    src/buff.cpp \
+    src/threadpool.cpp
 
 HEADERS += \
     include/wrap.h \
@@ -23,4 +24,5 @@ HEADERS += \
     include/mythread.h \
     include/savedata.h \
     include/sysdata.h \
-    include/buff.h
+    include/buff.h \
+    include/threadpool.h

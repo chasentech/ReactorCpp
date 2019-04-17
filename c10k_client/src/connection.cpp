@@ -43,9 +43,10 @@ void Connection::connectServer(int cliNum)
         printf("i = %d\n", i);
 
         //连接成功，服务器反馈信息，必要的
-        char rece_ser[10] = {0};
+        char rece_ser[15] = {0};
         Read(sockfd, rece_ser, 10);
-        printf("received = %s\n", rece_ser);
+        printf("received = %d ", rece_ser[0]);
+        printf("%s\n", rece_ser+1);
 
     }
     printf("-----------------------\n");
@@ -53,13 +54,22 @@ void Connection::connectServer(int cliNum)
 
 void Connection::connectLoop()
 {
+    //int i_heartbeat = 0;
     while (1)
     {
         for (int i = 0; i < m_cliNum; i++)
         {
             memset(m_buff, 0, MAXLINE);
-            data_to_buff(m_buff, MAXLINE, i);   //**sleep(1)
+            data2Buff(m_buff, MAXLINE, i);   //**sleep(1)
             Write(m_sockfdArray[i], m_buff, strlen(m_buff));
+
+//            i_heartbeat++;
+//            if (i_heartbeat == 10)
+//            {
+//                i_heartbeat = 0;
+//                Write(m_sockfdArray[i], "38D", 3);
+//            }
+
         }
         printf("sleep!\n");
         //sleep(1);               //*sleep(1)

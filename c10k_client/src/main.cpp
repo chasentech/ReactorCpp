@@ -9,7 +9,7 @@ int main()
     /*
     //test data_to_buff
     char temp[100] = {0};
-    data_to_buff(temp, 100, 1);
+    data2Buff(temp, 100, 1);
     printf("%d ", temp[0]);
     printf("%s\n", temp + 1);
     */

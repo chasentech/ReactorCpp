@@ -1,11 +1,11 @@
 #include "buff.h"
 #include "sysdata.h"
 
-void data_to_buff(char *data, int len, int k)
+void data2Buff(char *data, int len, int k)
 {
     char buf_temp[10] = {0};
     int n = 0;
-    int j = 1;
+    int j = 2;
 
     if (k == 0)//k=0，使用真实数据
     {
@@ -18,23 +18,25 @@ void data_to_buff(char *data, int len, int k)
         {
             data[j++] = buf_temp[i];
         }
-        data[j++] = 'R';
+        data[j++] = '|';
 
         n = sprintf(buf_temp, "%d", SysData::getMemoryUse());
         for (int i = 0; i < 10 && i < n; i++)
         {
             data[j++] = buf_temp[i];
         }
-        data[j++] = 'U';
+        data[j++] = '|';
 
         n = sprintf(buf_temp, "%d", SysData::getMemoryTotal());
         for (int i = 0; i < 10 && i < n; i++)
         {
             data[j++] = buf_temp[i];
         }
-        data[j++] = 'T';
+        data[j++] = '|';
+        data[j++] = '$';    //end flag
 
         data[0] = j;
+        data[1] = 'D';
     }
     else    //k!=0，使用模拟数据
     {
@@ -43,27 +45,30 @@ void data_to_buff(char *data, int len, int k)
         {
             data[j++] = buf_temp[i];
         }
-        data[j++] = 'R';
+        data[j++] = '|';
 
         n = sprintf(buf_temp, "%d", (4000 + (k%3000)));
         for (int i = 0; i < 10 && i < n; i++)
         {
             data[j++] = buf_temp[i];
         }
-        data[j++] = 'U';
+        data[j++] = '|';
 
         n = sprintf(buf_temp, "%d", 8000);
         for (int i = 0; i < 10 && i < n; i++)
         {
             data[j++] = buf_temp[i];
         }
-        data[j++] = 'T';
+        data[j++] = '|';
+        data[j++] = '$';    //end flag
 
         data[0] = j;
+        data[1] = 'D';
     }
 
+
     //长度检查
-    if (j >= len)
+    if (j > len)
         perror("data buff out of range!\n");
 
 }

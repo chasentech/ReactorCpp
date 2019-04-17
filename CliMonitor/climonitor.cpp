@@ -7,16 +7,19 @@ CliMonitor::CliMonitor(QWidget *parent) :
 {
     ui->setupUi(this);
 
+
     m_tcpCli = new QTcpSocket(this);
     m_tcpCli->abort();                 //取消原有连接
+    //读数据，信号与槽连接
     connect(m_tcpCli, SIGNAL(readyRead()), this, SLOT(readData()));
     //connect(m_tcpCli, SIGNAL(error(QAbstractSocket::SocketError)),
     //        this, SLOT(ReadError(QAbstractSocket::SocketError)));
+    //断开连接，信号与槽连接
     connect(m_tcpCli, SIGNAL(disconnected()),this,SLOT(clientDis()));
 
 
-    m_connectFlag = false;
-    m_serverConnect = false;
+    m_connectFlag = false;  //按下按键，置true
+    m_serverConnect = false;//是否连接到服务器标志位
     m_vecCpuRate.clear();
     m_vecMemUse.clear();
     m_memTotal = 0;
@@ -68,7 +71,7 @@ CliMonitor::CliMonitor(QWidget *parent) :
     connect(m_timer, SIGNAL(timeout()),
             this, SLOT(slotUpdate()));
 
-    m_timer->start(100);
+    m_timer->start(1000);
 }
 
 CliMonitor::~CliMonitor()
@@ -179,16 +182,21 @@ void CliMonitor::keyPressEvent(QKeyEvent *ev)
 
 }
 
-void CliMonitor::slotUpdate()
+void CliMonitor::slotUpdate()   //定时器事件，发送验证信息
 {
-    //qDebug() << "repaint";
+    QString str;
+    str += 5;
+    str += "EM|$";
+    QByteArray bytes = str.toUtf8();
+
+
     if (m_connectFlag == true && m_serverConnect == false)
     {
-        m_tcpCli->write("M");
-        qDebug() << "send M";
+        m_tcpCli->write(bytes);
+        qDebug() << "send 5EM|$";
     }
 
-    deCode();
+    //deCode();
 
 
     update();
@@ -264,25 +272,30 @@ void CliMonitor::deCode()
 }
 
 
-void CliMonitor::readData()
+void CliMonitor::readData() //读服务器发来的信息
 {
     m_str.clear();
 
+    QString str;
+    str += 5;
+    str += "EY|$";
+
     QByteArray buffer = m_tcpCli->readAll();
     m_str.prepend(buffer);
-    if(m_serverConnect == false && m_str== "M")
+    if(m_serverConnect == false && m_str== str)
     {
         m_serverConnect = true;
-        qDebug() << "received M";
+        qDebug() << "received 5EY|$";
     }
     else
     {
-        qDebug() << "server data is " << m_str;
+
+        qDebug() << "server data is " << m_str[0].unicode() << m_str;
         decode_once = true;
     }
 }
 
-void CliMonitor::clientDis()
+void CliMonitor::clientDis()    //服务器断开执行的操作
 {
     if (m_connectFlag == true)
     {

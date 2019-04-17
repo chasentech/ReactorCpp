@@ -46,6 +46,7 @@ MyEpollSer::MyEpollSer(const int servPort, const int cliNum)
 
 MyEpollSer::~MyEpollSer()
 {
+    pthread_mutex_destroy(&counter_mutex_map);
     close(m_epfd);
     close(m_listenfd);
 }
@@ -107,7 +108,7 @@ void MyEpollSer::handleAccept(struct epoll_event *evs)
 {
     if(evs->data.fd == m_listenfd) //fd为监听的fd
     {
-        char return_data[10] = {0};
+        char return_data[15] = {0};
 
         struct sockaddr_in clientaddr;
         socklen_t clientaddr_len = sizeof(clientaddr);
@@ -123,6 +124,7 @@ void MyEpollSer::handleAccept(struct epoll_event *evs)
         const char *cli_ip = inet_ntoa(clientaddr.sin_addr);
         int cli_port = ntohs(clientaddr.sin_port);
         printf("fd = %d, connect from IP: %s, port: %d\n", connfd, cli_ip, cli_port);
+
 
 
         //全局表写入
@@ -144,7 +146,7 @@ void MyEpollSer::handleAccept(struct epoll_event *evs)
         update_events(m_epfd, connfd, EPOLLIN | EPOLLET, EPOLL_CTL_ADD);
 
         //retrun to client(necessary!!!)
-        returnData(return_data, connfd);
+        returnData(return_data, 15, connfd);
         write(connfd, return_data, 10);
     }
 }
@@ -157,7 +159,7 @@ void MyEpollSer::handleRead(struct epoll_event *evs)
         if (sockfd < 0)
             return;
 
-        if (evs->events & EPOLLRDHUP)
+        if (evs->events & EPOLLRDHUP)   //客户端掉线
         {
             //if (sockfd == monitor_fd) monitor_fd = 0;
             close(sockfd);
@@ -172,30 +174,20 @@ void MyEpollSer::handleRead(struct epoll_event *evs)
             close(sockfd);
             printf("readline error\n");
         }
-        else if (n == 0)	//断开连接
+        else if (n == 0)	//客户端断开连接
         {
             //if (sockfd == monitor_fd) monitor_fd = 0;
             close(sockfd);
             printf("client close the socket!\n");
         }
-        else
+        else //正常状态
         {
-//            //Monitor cli
-//            if (buff[0] == 'M')
-//            {
-//                buff[0] = 0;
-//                printf("Monitor is connect!\n");
-//                write(sockfd, "M", 1);
-//                monitor_fd = sockfd;
-//            }
-//            else    //normal cli
-//            {
-                printf("recv data: %d %s, fd = %d\n", m_buff[0], &m_buff[1], sockfd);
-                //接收到的信息入队
-                QueueData::queStrPush(m_buff.data());
-                QueueData::queEvFdPush(sockfd);
-
-            //}
+            printf("recv data: %d %s, fd = %d\n", m_buff[0], &m_buff[1], sockfd);
+            //接收到的信息入队
+            pthread_mutex_lock(&counter_mutex_map);
+            QueueData::queStrPush(m_buff.data());
+            QueueData::queEvFdPush(sockfd);
+            pthread_mutex_unlock(&counter_mutex_map);
 
 
 
