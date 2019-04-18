@@ -196,8 +196,7 @@ void CliMonitor::slotUpdate()   //定时器事件，发送验证信息
         qDebug() << "send 5EM|$";
     }
 
-    //deCode();
-
+    deCode();
 
     update();
 }
@@ -225,28 +224,30 @@ void CliMonitor::deCode()
     if (m_serverConnect == true && decode_once == true)
     {
         decode_once = false;
-        //"..R..U..T..R..U..T..E..D"
+        //25 "\u0019D7|2192|7872|0|0|0|0|0|$"
+
+        int count = m_str[0].unicode();
+        if (m_str[count - 1] != '$')
+        {
+            qDebug() << "rece data error!";
+            return;
+        }
+
+
         int temp = 0;
-        int temp_value[8] = {0};
+        int temp_value[10] = {0};
         int k = 0;
 
-        for (int i = 0; i < m_str.length() && m_str[i] != '\0'; i++)
+        for (int i = 0; i < m_str.length() && m_str[i] != '$'; i++)
         {
             if (m_str[i] >= '0' && m_str[i] <= '9')
             {
                 temp = temp * 10 + m_str[i].unicode() - '0';
             }
-            else if (m_str[i] == 'R' || m_str[i] == 'U' || m_str[i] == 'T'
-                     || m_str[i] == 'E')
+            else if (m_str[i] == '|')
             {
                 temp_value[k++] = temp;
                 temp = 0;
-            }
-            else if (m_str[i] == 'D')
-            {
-                temp_value[k++] = temp;
-                temp = 0;
-                break;
             }
         }
         m_cpuRate = temp_value[0];
@@ -262,9 +263,17 @@ void CliMonitor::deCode()
 
 
 
-//        for (int i = 0; i < 8; i++)
-//            qDebug() << temp_value[i];
-//        qDebug() << "--------------";
+        if (temp_value[8] != 0)
+        {
+            if (ui->spinBox->maximum() != temp_value[8] - 1)
+            {
+                ui->spinBox->setMaximum(temp_value[8] - 1);
+                qDebug() << "updata";
+            }
+        }
+        else ui->spinBox->setMaximum(0);
+
+
 
 
         m_str.clear();
@@ -289,7 +298,6 @@ void CliMonitor::readData() //读服务器发来的信息
     }
     else
     {
-
         qDebug() << "server data is " << m_str[0].unicode() << m_str;
         decode_once = true;
     }
@@ -369,5 +377,19 @@ void CliMonitor::on_pb_disconnect_clicked()
 
 void CliMonitor::on_pb_upDateCliIndex_clicked()
 {
-    qDebug() << " update ci index";
+    //查看某个客户端信息
+    QString numStr = QString::number(ui->spinBox->value());
+    int numLentn = numStr.size();
+    QString str;
+    str += numLentn+4;
+    str += "C";
+    str += numStr;
+    str += "|$";
+    QByteArray bytes = str.toUtf8();
+
+
+    m_tcpCli->write(bytes);
+    qDebug() << str;
+
+    ui->lb_fd->setText(QString::number(ui->spinBox->value()));
 }

@@ -17,6 +17,7 @@
 #include <iomanip> //cout << setw(15)
 
 #include "queuedata.h"
+#include "mythread.h"
 
 using namespace std;
 

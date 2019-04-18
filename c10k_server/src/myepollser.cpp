@@ -170,19 +170,29 @@ void MyEpollSer::handleRead(struct epoll_event *evs)
         memset(m_buff.data(), 0, 100);
         if ( (n = read(sockfd, m_buff.data(), 100)) < 0)	//连接错误
         {
-            //if (sockfd == monitor_fd) monitor_fd = 0;
+            if (sockfd == MyThread::getMonitorFd())
+            {
+                MyThread::setMonitorFd(-1);
+                MyThread::setCliToMoniFd(-1);
+            }
+
             close(sockfd);
             printf("readline error\n");
         }
         else if (n == 0)	//客户端断开连接
         {
-            //if (sockfd == monitor_fd) monitor_fd = 0;
+            if (sockfd == MyThread::getMonitorFd())
+            {
+                MyThread::setMonitorFd(-1);
+                MyThread::setCliToMoniFd(-1);
+            }
+
             close(sockfd);
             printf("client close the socket!\n");
         }
         else //正常状态
         {
-            printf("recv data: %d %s, fd = %d\n", m_buff[0], &m_buff[1], sockfd);
+            //printf("recv data: %d %s, fd = %d\n", m_buff[0], &m_buff[1], sockfd);
             //接收到的信息入队
             pthread_mutex_lock(&counter_mutex_map);
             QueueData::queStrPush(m_buff.data());

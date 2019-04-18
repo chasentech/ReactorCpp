@@ -38,7 +38,14 @@ int MyThread::getMonitorFd()
 {
     return m_monitorFd;
 }
-
+void MyThread::setCliToMoniFd(int value)
+{
+    m_cliToMoniFd = value;
+}
+int MyThread::getCliToMoniFd()
+{
+    return m_cliToMoniFd;
+}
 
 void MyThread::thread_subReactorRun()
 {
@@ -73,6 +80,7 @@ void *MyThread::pthread_subReactor(void *arg)
 
 void MyThread::dataEvent_Command()
 {
+    //cout << "cliclicli:" << m_commandData << endl;
     int temp = 0;
     int type = 0;
     if (m_commandData[0] >= '0' && m_commandData[0] <= '9')
@@ -81,12 +89,29 @@ void MyThread::dataEvent_Command()
 
     if (type == 1)//获取某个客户端数据
     {
-        for (int i = 0; i != '|'; i++) //'|' is end
+        for (int i = 0; m_commandData[i] != '|'; i++) //'|' is end
         {
-            temp = temp * 10 + m_commandData[i];
+            temp = temp * 10 + m_commandData[i] - '0';
         }
+
+        pthread_mutex_lock(&counter_mutex_map);
+
+        map<int, SaveData::s_Savedata>::iterator iterMin = SaveData::serSaveData.begin();
+
+        int minFd = iterMin->first;
+
+
         //设置需要获取数据的客户端fd
-        m_cliToMoniFd = temp;
+        map<int, SaveData::s_Savedata>::iterator iter =
+                SaveData::serSaveData.find(temp + minFd);
+        if (iter != SaveData::serSaveData.end())
+        {
+            m_cliToMoniFd = temp + minFd;
+            //printf("m_cliToMoniFd = %d\n", m_cliToMoniFd);
+        }
+        pthread_mutex_unlock(&counter_mutex_map);
+        temp = 0;
+
     }
     if (type == 2)//执行命令，将'|'改为'\0'即可
     {
@@ -120,8 +145,7 @@ void MyThread::dataEvent_Enter(int str_fd)
     write(str_fd, temp, strlen(temp));
 
     m_monitorFd = str_fd;
-
-    //printf("send\n");
+    SaveData::serSaveData.erase(str_fd);//monitorfdb不需要加入全局表
 }
 
 void *MyThread::pthread_dealData(void *arg)
@@ -155,8 +179,8 @@ void *MyThread::pthread_dealData(void *arg)
 
             switch (checkData(str.data()))
             {
-                case 'C'://deCode_Command(str.data()+2, m_commandData, 20);
-                        //dataEvent_Command();
+                case 'C':deCode_Command(str.data()+2, (char *)&m_commandData, 20);
+                        dataEvent_Command();
                         break;
                 case 'D':SaveData::s_SysData sysData_t;
                         deCode_Data(str.data()+2, sysData_t);//解析数据
@@ -186,12 +210,31 @@ void *MyThread::pthread_monitor(void *arg)
             data2Buff(m_toMonitorData, 100);
 
             pthread_mutex_lock(&counter_mutex_map);
+
             m_toMonitorData[0]--;   //notice to delete '$'
-            cliData2Buff(m_toMonitorData,
-                    100, SaveData::serSaveData[8].s_sysData);   //modify 8
+            if (m_cliToMoniFd != -1)
+            {
+                cliData2Buff(m_toMonitorData,
+                    100, SaveData::serSaveData[m_cliToMoniFd].s_sysData);   //modify 8
+            }
+            else
+            {
+                SaveData::s_SysData s_sysData;
+                s_sysData.m_cpuRate = 0;
+                s_sysData.m_memoryUse = 0;
+                s_sysData.m_memoryTotal = 0;
+                cliData2Buff(m_toMonitorData, 100, s_sysData);
+            }
 
             m_toMonitorData[0]--;
             wholeRate2Buff(m_toMonitorData, 100, w_cpuScale, w_memScale);
+
+
+            int fdMax = SaveData::serSaveData.size();
+            m_toMonitorData[0]--;
+            fdMinMax(m_toMonitorData, 100, fdMax);
+
+
             pthread_mutex_unlock(&counter_mutex_map);
 
             //32 D8|4476|7872|38|4003|8000|0|0|$
@@ -207,26 +250,31 @@ void *MyThread::pthread_monitor(void *arg)
         for(map<int, SaveData::s_Savedata>::iterator iter = SaveData::serSaveData.begin();
             iter != SaveData::serSaveData.end(); iter++, i++)
         {
-           int key = iter->first;
+           //int key = iter->first;
            SaveData::s_Savedata value = iter->second;
 
            if (value.s_sysData.m_cpuRate > 70) w_cpuScale++;
            if (value.s_sysData.m_memoryUse > 6000) w_memScale++;
 
-
+           /*
            cout.setf(ios::left);
            cout << setw(6) << key << " " << setw(15) << value.s_cliData.IP << " " << setw(5) << value.s_cliData.port << " "
                 << setw(3) << value.s_sysData.m_cpuRate << " " << setw(4) << value.s_sysData.m_memoryUse << " "
                 << setw(4) << value.s_sysData.m_memoryTotal << endl;
-
+           */
         }
         if (i != 0)
         {
             w_cpuScale = w_cpuScale*100 / i;
             w_memScale = w_memScale*100 / i;
         }
-        pthread_mutex_unlock(&counter_mutex_map);
 
+        cout.setf(ios::left);
+        cout << setw(8) << "cliNum: " << setw(6) << SaveData::serSaveData.size()
+             << setw(8) << ", moniFd: " << setw(4) << m_monitorFd
+             << ", moniListenFd: " << setw(4) << m_cliToMoniFd << endl;
+
+        pthread_mutex_unlock(&counter_mutex_map);
 
     }
 }

@@ -1,7 +1,9 @@
 #include "buff.h"
 #include "sysdata.h"
 
-//执行相关命令
+//解析数据相关函数
+//反馈客户端的信息
+
 
 void data2Buff(char *data, int len)
 {

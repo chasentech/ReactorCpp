@@ -132,6 +132,27 @@ void wholeRate2Buff(char *data, int len, int rateCpu, int rateMen)
 
 }
 
+void fdMinMax(char *data, int len, int fdMax)
+{
+    char buf_temp[10] = {0};
+
+
+    int j = data[0];
+    sprintf(buf_temp, "%d", fdMax);
+    for (int i = 0; i < 10 && buf_temp[i] != '\0'; i++)
+    {
+        data[j++] = buf_temp[i];
+    }
+    data[j++] = '|';
+    data[j++] = '$';
+
+    data[0] = j;
+    //28 D9|4434|7872|38|4003|8000|$
+    //长度检查
+    if (j > len)
+        perror("data buff out of range!\n");
+}
+
 void deCode_Command(const char *str, char *dst, int len)
 {
     //8C2235|$
@@ -141,7 +162,7 @@ void deCode_Command(const char *str, char *dst, int len)
     int j = 0;
     for (int i = 0; i < 20 && str[i] != '$'; i++)
     {
-        dst[j] = str[i];
+        dst[j++] = str[i];
     }
 }
 

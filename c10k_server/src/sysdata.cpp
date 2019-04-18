@@ -57,7 +57,7 @@ unsigned long SysData::GetCPUUsageRate()
     }
 
     unsigned long usage = (nTotalTime - nIdleTime) * 100 / nTotalTime;
-    printf("CPU use: %lu\n", usage);
+    //printf("CPU use: %lu\n", usage);
 
     return usage;
 

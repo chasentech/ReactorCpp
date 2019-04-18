@@ -23,6 +23,10 @@ public:
     static void setMonitorFd(int value);
     static int getMonitorFd();
 
+    static void setCliToMoniFd(int value);
+    static int getCliToMoniFd();
+
+
     static void thread_subReactorRun();
     static void thread_dealDataRun();
     static void thread_monitorRun();

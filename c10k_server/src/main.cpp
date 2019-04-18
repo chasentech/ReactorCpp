@@ -13,9 +13,6 @@
 using namespace std;
 
 
-//****什么时候清理map****
-
-
 pthread_mutex_t counter_mutex_main = PTHREAD_MUTEX_INITIALIZER;
 
 int main()
@@ -45,5 +42,6 @@ int main()
 
 
 
+    pthread_mutex_destroy(&counter_mutex_main);
     return 0;
 }
