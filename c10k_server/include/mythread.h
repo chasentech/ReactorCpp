@@ -37,20 +37,20 @@ public:
 
 private:
 
-    static char m_toMonitorData[100];//发送给监视器的数据
-    static int m_monitorFd;//监视器fd
-    static int m_cliToMoniFd;//监视器监视的客户端fd
-    static char m_commandData[20];
+    static char m_toMonitorData[100];   //发送给监视器的数据
+    static int m_monitorFd;     //监视器fd
+    static int m_cliToMoniFd;   //监视器监视的客户端fd
+    static char m_commandData[20];  //命令接收区
 
-    static int w_cpuScale;//
-    static int w_memScale;//
+    static int w_cpuScale;  //集群CPU情况
+    static int w_memScale;  //集群Men情况
 
     static pthread_t ntid_subReactor;
     static pthread_t ntid_dealData;
     static pthread_t ntid_minotor;
 
-    static pthread_mutex_t counter_mutex_map;
-    static pthread_mutex_t counter_mutex_que;
+    static pthread_mutex_t counter_mutex_map;   //全局表读写锁
+    static pthread_mutex_t counter_mutex_que;   //队列读写锁
 
     static void dataEvent_Command();
     static void dataEvent_Data(int str_fd, SaveData::s_SysData &sysData_t);

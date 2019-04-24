@@ -6,7 +6,7 @@ threadpool_t ThreadPool::m_pool;
 
 ThreadPool::ThreadPool(int threadNum, void *(*run)(void *arg), void *arg)
 {
-    //初始化线程池，最多五个线程
+    //初始化线程池，最多threadNum个线程
     threadpool_init(&m_pool, threadNum);
     for (int i = 0; i < threadNum; i++)
     {
@@ -101,7 +101,7 @@ void *ThreadPool::thread_routine(void *arg)
         timeout = 0;
         //访问线程池之前需要加锁
         condition_lock(&pool->ready);
-        //空闲
+        //空闲进程
         pool->idle++;
         //等待队列有任务到来 或者 收到线程池销毁通知
         while(pool->first == NULL && !pool->quit)

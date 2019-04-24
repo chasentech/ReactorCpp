@@ -1,3 +1,6 @@
+/*
+服务器epoll类
+*/
 #ifndef MYEPOLLSER_H
 #define MYEPOLLSER_H
 
@@ -27,12 +30,13 @@ public:
     MyEpollSer(const int servPort, const int cliNum);
     ~MyEpollSer();
 
-    int epollNfds();
+    int epollNfds();    //返回活动的events个数
     struct epoll_event getEventsIndex(int index);
     int getListenFd();
     int getEpfd();
-    static void handleAccept(struct epoll_event *evs);
-    static void handleRead(struct epoll_event *evs);
+
+    static void handleAccept(struct epoll_event *evs);  //处理连接
+    static void handleRead(struct epoll_event *evs);    //读数据
 
 private:
     static int m_epfd;

@@ -99,8 +99,6 @@ void MyThread::dataEvent_Command()
         map<int, SaveData::s_Savedata>::iterator iterMin = SaveData::serSaveData.begin();
 
         int minFd = iterMin->first;
-
-
         //设置需要获取数据的客户端fd
         map<int, SaveData::s_Savedata>::iterator iter =
                 SaveData::serSaveData.find(temp + minFd);
@@ -230,8 +228,8 @@ void *MyThread::pthread_monitor(void *arg)
             wholeRate2Buff(m_toMonitorData, 100, w_cpuScale, w_memScale);
 
 
-            int fdMax = SaveData::serSaveData.size();
             m_toMonitorData[0]--;
+            int fdMax = SaveData::serSaveData.size();
             fdMinMax(m_toMonitorData, 100, fdMax);
 
 

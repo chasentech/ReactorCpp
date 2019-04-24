@@ -1,7 +1,6 @@
 #include "buff.h"
 #include "sysdata.h"
 
-
 void returnData(char *p, int len, int fd)
 {
     char buf_temp[10] = {0};
@@ -14,7 +13,7 @@ void returnData(char *p, int len, int fd)
         p[j++] = buf_temp[i];
     }
     p[j++] = '|';
-    p[j++] = '$';
+    p[j++] = '$';   //flag of end
 
     if (j > len)
     {
@@ -22,8 +21,8 @@ void returnData(char *p, int len, int fd)
         return;
     }
 
-    p[0] = j;
-    p[1] = 'E';
+    p[0] = j;   //lenth of data
+    p[1] = 'E'; //type of data
 
 }
 
@@ -61,8 +60,6 @@ void data2Buff(char *data, int len)
 
     data[0] = j;
     data[1] = 'D';
-
-
 
     //长度检查
     if (j > len)
@@ -224,11 +221,9 @@ void deCode_Enter()
 }
 
 
-
-
 char checkData(const char *str)
 {
-    //check data is right
+    //check data lenth
     int count = str[0];
     if (str[count - 1] != '$')
     {
@@ -236,7 +231,7 @@ char checkData(const char *str)
         return -1;
     }
 
-    //return type data
+    //return type of data
     return str[1];
 }
 

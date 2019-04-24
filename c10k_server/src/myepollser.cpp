@@ -86,7 +86,7 @@ void MyEpollSer::update_events(int epfd, int connfd, int events, int op)
 
 int MyEpollSer::epollNfds()
 {
-    int nfds = epoll_wait(m_epfd, m_events.data(), m_cliNum, 10); //100ms等待epoll事件的发生
+    int nfds = epoll_wait(m_epfd, m_events.data(), m_cliNum, 10); //10ms等待epoll事件的发生
     return nfds;
 }
 
@@ -124,7 +124,6 @@ void MyEpollSer::handleAccept(struct epoll_event *evs)
         const char *cli_ip = inet_ntoa(clientaddr.sin_addr);
         int cli_port = ntohs(clientaddr.sin_port);
         printf("fd = %d, connect from IP: %s, port: %d\n", connfd, cli_ip, cli_port);
-
 
 
         //全局表写入
